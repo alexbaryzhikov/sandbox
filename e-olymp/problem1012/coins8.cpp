@@ -16,48 +16,48 @@ int sum(vector<int> &v) {
   return result;
 }
 
-int explore(int k, vector<int> &nums, int pos, int part_sum) {
+int check_sample(int size, vector<int> &sample, int index, int sample_value) {
   bool done{true};
 
-  if (k == 0) {
-    if (part_sum == n) {
-      return sum(nums);
+  if (size == 0) {
+    if (sample_value == n) {
+      return sum(sample);
     }
-    if (part_sum < n) {
+    if (sample_value < n) {
       done = false;
     }
-  } else if (k == 1) {
-    for (size_t i = pos; i < coins.size(); i++) {
-      if (part_sum + coins[i] == n) {
-        return sum(nums) + 1;
+  } else if (size == 1) {
+    for (size_t i = index; i < coins.size(); i++) {
+      if (sample_value + coins[i] == n) {
+        return sum(sample) + 1;
       }
-      if (part_sum + coins[i] < n) {
+      if (sample_value + coins[i] < n) {
         done = false;
       }
     }
   } else {
-    int rest_num = (coins.size() - pos - 1) * 2;
-    if (k - 2 <= rest_num) {
-      nums[pos] = 2;
-      int result = explore(k - 2, nums, pos + 1, part_sum + coins[pos] * 2);
+    int rest_num = (coins.size() - index - 1) * 2;
+    if (size - 2 <= rest_num) {
+      sample[index] = 2;
+      int result = check_sample(size - 2, sample, index + 1, sample_value + coins[index] * 2);
       if (result > 0) {
         return result;
       }
       if (result == 0) {
         done = false;
       }
-      if (k - 1 <= rest_num) {
-        nums[pos] = 1;
-        int result = explore(k - 1, nums, pos + 1, part_sum + coins[pos]);
+      if (size - 1 <= rest_num) {
+        sample[index] = 1;
+        int result = check_sample(size - 1, sample, index + 1, sample_value + coins[index]);
         if (result > 0) {
           return result;
         }
         if (result == 0) {
           done = false;
         }
-        nums[pos] = 0;
-        if (k <= rest_num) {
-          int result = explore(k, nums, pos + 1, part_sum);
+        sample[index] = 0;
+        if (size <= rest_num) {
+          int result = check_sample(size, sample, index + 1, sample_value);
           if (result > 0) {
             return result;
           }
@@ -66,7 +66,7 @@ int explore(int k, vector<int> &nums, int pos, int part_sum) {
           }
         }
       } else {
-        nums[pos] = 0;
+        sample[index] = 0;
       }
     }
   }
@@ -74,12 +74,12 @@ int explore(int k, vector<int> &nums, int pos, int part_sum) {
   return done ? -1 : 0;
 }
 
-int explore(int k) {
-  vector<int> nums;
+int check_sample(int size) {
+  vector<int> sample;
   for (int i = 0; i < m; i++) {
-    nums.push_back(0);
+    sample.push_back(0);
   }
-  return explore(k, nums, 0, 0);
+  return check_sample(size, sample, 0, 0);
 }
 
 void solve() {
@@ -93,8 +93,8 @@ void solve() {
     return;
   }
 
-  for (int i = 1; i <= m * 2; i++) {
-    int result = explore(i);
+  for (int size = 1; size <= m * 2; size++) {
+    int result = check_sample(size);
     if (result > 0) {
       cout << result << endl;
       return;
@@ -110,9 +110,9 @@ void solve() {
 int main() {
   cin >> n >> m;
   for (int i = 0; i < m; i++) {
-    int c;
-    cin >> c;
-    coins.push_back(c);
+    int coin;
+    cin >> coin;
+    coins.push_back(coin);
   }
 
   solve();
