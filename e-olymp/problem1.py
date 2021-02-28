@@ -1,0 +1,5 @@
+s = input()
+x = int(s)
+print(x//10, end="")
+print(" ", end="")
+print(x % 10)
