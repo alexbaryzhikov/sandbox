@@ -1,3 +1,9 @@
+/*
+You have coins of m different values, 2 of each.
+Find minimum number of coins that sum to n.
+Output this number, 0 if not found, or -1 if not enough money.
+*/
+
 #include <cstdio>
 #include <iostream>
 #include <string>
@@ -16,7 +22,7 @@ int sum(vector<int> &v) {
   return result;
 }
 
-int check_sample(int size, vector<int> &sample, int index, int sample_value) {
+int try_samples(int size, vector<int> &sample, int index, int sample_value) {
   bool done{true};
 
   if (size == 0) {
@@ -39,7 +45,7 @@ int check_sample(int size, vector<int> &sample, int index, int sample_value) {
     int rest_num = (coins.size() - index - 1) * 2;
     if (size - 2 <= rest_num) {
       sample[index] = 2;
-      int result = check_sample(size - 2, sample, index + 1, sample_value + coins[index] * 2);
+      int result = try_samples(size - 2, sample, index + 1, sample_value + coins[index] * 2);
       if (result > 0) {
         return result;
       }
@@ -48,7 +54,7 @@ int check_sample(int size, vector<int> &sample, int index, int sample_value) {
       }
       if (size - 1 <= rest_num) {
         sample[index] = 1;
-        int result = check_sample(size - 1, sample, index + 1, sample_value + coins[index]);
+        int result = try_samples(size - 1, sample, index + 1, sample_value + coins[index]);
         if (result > 0) {
           return result;
         }
@@ -57,7 +63,7 @@ int check_sample(int size, vector<int> &sample, int index, int sample_value) {
         }
         sample[index] = 0;
         if (size <= rest_num) {
-          int result = check_sample(size, sample, index + 1, sample_value);
+          int result = try_samples(size, sample, index + 1, sample_value);
           if (result > 0) {
             return result;
           }
@@ -74,12 +80,12 @@ int check_sample(int size, vector<int> &sample, int index, int sample_value) {
   return done ? -1 : 0;
 }
 
-int check_sample(int size) {
+int try_samples(int size) {
   vector<int> sample;
   for (int i = 0; i < m; i++) {
     sample.push_back(0);
   }
-  return check_sample(size, sample, 0, 0);
+  return try_samples(size, sample, 0, 0);
 }
 
 void solve() {
@@ -94,7 +100,7 @@ void solve() {
   }
 
   for (int size = 1; size <= m * 2; size++) {
-    int result = check_sample(size);
+    int result = try_samples(size);
     if (result > 0) {
       cout << result << endl;
       return;
