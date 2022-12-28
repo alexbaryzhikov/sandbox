@@ -4,20 +4,20 @@
 
 class PrimeIterator {
    private:
-    std::unordered_map<long, std::vector<long>> D = {{4, {2}}};
+    std::unordered_map<long, std::vector<long>> composites = {{4, {2}}};
     int q = 2;
 
    public:
     int operator*() { return q; }
 
     PrimeIterator& operator++() {
-        while (D.find(++q) != D.end()) {
-            for (int p : D[q]) {
-                D[p + q].push_back(p);
+        while (composites.find(++q) != composites.end()) {
+            for (int p : composites[q]) {
+                composites[p + q].push_back(p);
             }
-            D.erase(q);
+            composites.erase(q);
         }
-        D[q * q] = {q};
+        composites[q * q] = {q};
         return *this;
     }
 };
