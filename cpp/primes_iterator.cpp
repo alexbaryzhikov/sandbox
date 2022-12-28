@@ -24,12 +24,9 @@ class PrimeIterator {
 
 int main() {
     PrimeIterator it;
-    int prime_index;
-    std::cout << "Enter prime number index: ";
-    std::cin >> prime_index;
-    for (int i = 1; i < prime_index; ++i) {
+    for (int i = 0; i < 100; ++i) {
+        std::cout << *it << ' ';
         ++it;
     }
-    std::cout << "Prime number #" << prime_index << " is " << *it << std::endl;
-    return 0;
+    std::cout << std::endl;
 }
