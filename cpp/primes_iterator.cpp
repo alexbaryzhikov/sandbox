@@ -10,6 +10,12 @@ class PrimeIterator {
    public:
     int operator*() { return q; }
 
+    PrimeIterator operator++(int) {
+        PrimeIterator tmp = *this;
+        ++*this;
+        return tmp;
+    }
+
     PrimeIterator& operator++() {
         while (composites.find(++q) != composites.end()) {
             for (int p : composites[q]) {
