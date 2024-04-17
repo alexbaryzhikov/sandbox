@@ -1,3 +1,9 @@
 #include <iostream>
+#include <vector>
+#include <limits>
 
-int main() { std::cout << "Hello!" << std::endl; }
+int main() {
+    int a = std::numeric_limits<int>().min();
+    std::cout << a << std::endl;
+    std::cout << -a << std::endl;
+}
