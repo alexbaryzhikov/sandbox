@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-auto fib(unsigned n, unsigned max_depth) -> std::expected<unsigned, std::string> {
+auto fib(int64_t n, int64_t max_depth) -> std::expected<int64_t, std::string> {
     if (max_depth == 0) {
         return std::unexpected(std::to_string(n) + " exceeds max_depth");
     }
