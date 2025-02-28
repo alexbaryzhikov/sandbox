@@ -1,8 +1,7 @@
 #include <iostream>
 
-using namespace std;
-
 int main() {
-  for (int i = 0; i < 10; i++) cout << i << ':' << (i & -i) << ' ';
-  cout << '\n';
+  float a = 1.5;
+  int b = 2;
+  std::cout << b - a << '\n';
 }
