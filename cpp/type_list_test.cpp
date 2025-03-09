@@ -74,6 +74,15 @@ TEST(TypeListTest, PopFront) {
     EXPECT_TRUE((std::is_same_v<ListWithoutFirst::type_at_t<0>, double>));
 }
 
+TEST(TypeListTest, PopBack) {
+    using MyList = TypeList<int, double, char, float>;
+    using ListWithoutLast = MyList::pop_back_t;
+    
+    EXPECT_EQ(ListWithoutLast::size, MyList::size - 1);
+    EXPECT_TRUE((std::is_same_v<ListWithoutLast::type_at_t<ListWithoutLast::size - 1>, char>));
+    EXPECT_FALSE(ListWithoutLast::contains_v<float>);
+}
+
 TEST(TypeListTest, Equality) {
     using MyList = TypeList<int, double, char, float>;
     using SameAsList = TypeList<int, double, char, float>;

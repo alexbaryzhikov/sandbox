@@ -129,6 +129,27 @@ public:
     // Helper alias
     using pop_front_t = typename pop_front::type;
 
+    // Remove last type from the list
+    struct pop_back {
+    private:
+        template<typename... Accumulated>
+        struct pop_back_impl {
+            template<typename First, typename... Rest>
+            static auto apply() {
+                if constexpr (sizeof...(Rest) == 0)
+                    return std::type_identity<TypeList<Accumulated...>>{};
+                else
+                    return pop_back_impl<Accumulated..., First>::template apply<Rest...>();
+            }
+        };
+
+    public:
+        using type = typename decltype(pop_back_impl<>::template apply<Types...>())::type;
+    };
+
+    // Helper alias
+    using pop_back_t = typename pop_back::type;
+
     // Compare two type lists for equality
     template<typename... OtherTypes>
     friend constexpr bool operator==(const TypeList&, const TypeList<OtherTypes...>&) {

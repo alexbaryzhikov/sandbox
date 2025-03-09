@@ -67,6 +67,12 @@ int main() {
     std::cout << "New size: " << ListWithoutFirst::size << '\n';
     std::cout << "New first type: " << type_name<ListWithoutFirst::type_at_t<0>>() << '\n';
     
+    // Demonstrate pop_back
+    using ListWithoutLast = MyList::pop_back_t;
+    std::cout << "\nAfter pop_back:\n";
+    std::cout << "New size: " << ListWithoutLast::size << '\n';
+    std::cout << "New last type: " << type_name<ListWithoutLast::type_at_t<ListWithoutLast::size - 1>>() << '\n';
+    
     // Demonstrate operator==
     using SameAsList = TypeList<int, double, char, float>;
     using DifferentList = TypeList<double, int, char, float>;
