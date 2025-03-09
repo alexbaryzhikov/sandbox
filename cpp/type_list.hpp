@@ -3,46 +3,31 @@
 
 #include <type_traits>
 #include <cstddef>
+#include <tuple>
 
 template<typename... Types>
 class TypeList {
 public:
     static constexpr std::size_t size = sizeof...(Types);
 
-    // Get type at index N
+private:
+    using tuple_type = std::tuple<Types...>;
+
+public:
+    // Get type at index N (non-recursive)
+    template<std::size_t N>
+    using type_at_t = std::tuple_element_t<N, tuple_type>;
+
+    // Original recursive version would be replaced:
     template<std::size_t N>
     struct type_at {
-        template<typename T, typename... Rest>
-        static auto get_type() {
-            if constexpr (N == 0)
-                return std::type_identity<T>{};
-            else if constexpr (sizeof...(Rest) > 0)
-                return type_at<N-1>::template get_type<Rest...>();
-            else
-                static_assert(N < sizeof...(Types), "Index out of bounds");
-        }
-
-        using type = typename decltype(get_type<Types...>())::type;
+        using type = type_at_t<N>;
     };
-
-    // Helper alias
-    template<std::size_t N>
-    using type_at_t = typename type_at<N>::type;
 
     // Check if list contains type T
     template<typename T>
     struct contains {
-        template<typename First, typename... Rest>
-        static constexpr bool check() {
-            if constexpr (std::is_same_v<T, First>)
-                return true;
-            else if constexpr (sizeof...(Rest) > 0)
-                return check<Rest...>();
-            else
-                return false;
-        }
-
-        static constexpr bool value = check<Types...>();
+        static constexpr bool value = (std::is_same_v<T, Types> || ...);
     };
 
     // Helper alias for contains
