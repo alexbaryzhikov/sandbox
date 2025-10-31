@@ -1,5 +1,4 @@
 #include <iostream>
-#include <vector>
 
 template <typename T>
 struct Is_const : public std::false_type {};
