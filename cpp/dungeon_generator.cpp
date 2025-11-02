@@ -19,6 +19,10 @@
 enum class Tile {
     floor,
     wall,
+    wallTopBeam,
+    wallVerticalBeam,
+    wallWindow,
+    wallRock
 };
 
 struct Position {
@@ -85,6 +89,21 @@ int getRandomOdd(int min, int max) {
     return min + dist(rng) * 2;
 }
 
+std::vector<Tile> generateWalls() {
+    std::vector<Tile> walls(MAP_WIDTH * MAP_HEIGHT);
+    for (int y = 0; y < MAP_HEIGHT; ++y) {
+        for (int x = 0; x < MAP_WIDTH; ++x) {
+            int idx = y * MAP_WIDTH + x;
+            if (x == 0 || x == MAP_WIDTH - 1 || y == 0 || y == MAP_HEIGHT - 1) {
+                walls[idx] = Tile::wallRock;
+            } else {
+                walls[idx] = Tile::wall;
+            }
+        }
+    }
+    return walls;
+}
+
 void carveRoom(const Rect& room, int& floorTiles) {
     for (int y = room.y; y < room.y + room.h; ++y) {
         for (int x = room.x; x < room.x + room.w; ++x) {
@@ -137,7 +156,7 @@ void carveRoom(const Rect& room, int& floorTiles) {
     }
 }
 
-void carveHTunnel(int x1, int x2, int y, int& floorTiles) {
+void carveTunnelH(int x1, int x2, int y, int& floorTiles) {
     if (x1 > x2) std::swap(x1, x2);
     for (int x = x1; x <= x2; ++x) {
         if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
@@ -149,7 +168,7 @@ void carveHTunnel(int x1, int x2, int y, int& floorTiles) {
     }
 }
 
-void carveVTunnel(int y1, int y2, int x, int& floorTiles) {
+void carveTunnelV(int y1, int y2, int x, int& floorTiles) {
     if (y1 > y2) std::swap(y1, y2);
     for (int y = y1; y <= y2; ++y) {
         if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
@@ -157,6 +176,44 @@ void carveVTunnel(int y1, int y2, int x, int& floorTiles) {
                 tiles[y * MAP_WIDTH + x] = Tile::floor;
                 floorTiles++;
             }
+        }
+    }
+}
+
+void safeSetWallTile(int x, int y, Tile newTile) {
+    if (x < 0 || x >= MAP_WIDTH || y < 0 || y >= MAP_HEIGHT) {
+        return;
+    }
+    if (tiles[y * MAP_WIDTH + x] == Tile::wall) {
+        tiles[y * MAP_WIDTH + x] = newTile;
+    }
+}
+
+void decorateRoomWalls(const Rect& room) {
+    // Decorate horizontal walls (top/bottom)
+    for (int x = room.x; x < room.x + room.w; ++x) {
+        if ((x - 1) % 4 == 0) {
+            safeSetWallTile(x, room.y - 1, Tile::wallVerticalBeam);
+            safeSetWallTile(x, room.y + room.h, Tile::wallVerticalBeam);
+        } else if ((x - 1) % 2 == 0) {
+            safeSetWallTile(x, room.y - 1, Tile::wallWindow);
+            safeSetWallTile(x, room.y + room.h, Tile::wallWindow);
+        } else {
+            safeSetWallTile(x, room.y - 1, Tile::wallTopBeam);
+            safeSetWallTile(x, room.y + room.h, Tile::wallTopBeam);
+        }
+    }
+    // Decorate vertical walls (left/right)
+    for (int y = room.y; y < room.y + room.h; ++y) {
+        if ((y - 1) % 4 == 0) {
+            safeSetWallTile(room.x - 1, y, Tile::wallVerticalBeam);
+            safeSetWallTile(room.x + room.w, y, Tile::wallVerticalBeam);
+        } else if ((y - 1) % 2 == 0) {
+            safeSetWallTile(room.x - 1, y, Tile::wallWindow);
+            safeSetWallTile(room.x + room.w, y, Tile::wallWindow);
+        } else {
+            safeSetWallTile(room.x - 1, y, Tile::wallTopBeam);
+            safeSetWallTile(room.x + room.w, y, Tile::wallTopBeam);
         }
     }
 }
@@ -185,6 +242,7 @@ std::vector<Rect> generateRooms() {
         if (overlaps) continue;
 
         carveRoom(newRoom, floorTiles);
+        decorateRoomWalls(newRoom);
         rooms.push_back(newRoom);
 
         // Connect the new room to the closest previous room
@@ -212,11 +270,11 @@ std::vector<Rect> generateRooms() {
 
             // Randomly decide to carve horizontal or vertical tunnel first
             if (getRandomInt(0, 1) == 0) {
-                carveHTunnel(prevCenter.x, newCenter.x, prevCenter.y, floorTiles);
-                carveVTunnel(prevCenter.y, newCenter.y, newCenter.x, floorTiles);
+                carveTunnelH(prevCenter.x, newCenter.x, prevCenter.y, floorTiles);
+                carveTunnelV(prevCenter.y, newCenter.y, newCenter.x, floorTiles);
             } else {
-                carveVTunnel(prevCenter.y, newCenter.y, prevCenter.x, floorTiles);
-                carveHTunnel(prevCenter.x, newCenter.x, newCenter.y, floorTiles);
+                carveTunnelV(prevCenter.y, newCenter.y, prevCenter.x, floorTiles);
+                carveTunnelH(prevCenter.x, newCenter.x, newCenter.y, floorTiles);
             }
         }
     }
@@ -292,15 +350,14 @@ void placePlayer(const std::vector<Rect>& rooms) {
 }
 
 void generateMap() {
-    tiles.assign(MAP_WIDTH * MAP_HEIGHT, Tile::wall);
-    std::vector<Rect> rooms = generateRooms();
+    tiles = generateWalls();
+    auto rooms = generateRooms();
     placePlayer(rooms);
 }
 
 void printMap() {
     for (int y = 0; y < MAP_HEIGHT; ++y) {
         for (int x = 0; x < MAP_WIDTH; ++x) {
-            // Check if this is the player's tile
             if (x == player.pos.x && y == player.pos.y) {
                 char dir;
                 switch (player.dir) {
@@ -319,12 +376,29 @@ void printMap() {
                 }
                 std::cout << dir << " ";
             } else {
-                // Print the map tile
                 Tile tile = tiles[y * MAP_WIDTH + x];
-                if (tile == Tile::floor) {
-                    std::cout << ". ";
-                } else { // tile == Tile::wall
-                    std::cout << "# ";
+                switch (tile) {
+                    case Tile::floor:
+                        std::cout << ". ";
+                        break;
+                    case Tile::wall:
+                        std::cout << "W ";
+                        break;
+                    case Tile::wallTopBeam:
+                        std::cout << "T ";
+                        break;
+                    case Tile::wallVerticalBeam:
+                        std::cout << "V ";
+                        break;
+                    case Tile::wallWindow:
+                        std::cout << "# ";
+                        break;
+                    case Tile::wallRock:
+                        std::cout << "R ";
+                        break;
+                    default: // Should not happen
+                        std::cout << "? ";
+                        break;
                 }
             }
         }
